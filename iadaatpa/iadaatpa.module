@@ -1,0 +1,449 @@
+<?php
+/**
+ * @file
+ * A block module that displays recent blog and forum posts.
+ */
+
+/**
+ * Implements hook_help().
+ *
+ * Displays help and module information.
+ *
+ * @param path
+ *   Which path of the site we're using to display help
+ * @param arg
+ *   Array that holds the current path as returned from arg() function
+ *
+ * @return mixed
+ */
+function iadaatpa_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#iadaatpa":
+      return t("The iADAATPA module help section.");
+    case 'admin/config/regional/iadaatpa':
+      $output = '<p>' . t('This page allows you to configure your iADAATPA settings') . '</p>';
+
+      return $output;
+    case 'admin/config/regional/iadaatpa/content':
+      return '<p>' . t('Click <a href="@import">Import</a> to import post-edited content.',
+          ['@import' => url('admin/config/regional/iadaatpa/content/import')]) . '</p>';
+    case 'admin/config/regional/iadaatpa/module':
+      return '<p>' . t('This page allows a translator to search for specific translated and untranslated strings, and is used when creating or editing translations. (Note: For translation tasks involving many strings, it may be more convenient to <a href="@export">export</a> strings for offline editing in a desktop Gettext translation editor.) Searches may be limited to strings found within a specific text group or in a specific language.',
+          ['@export' => url('admin/config/regional/translate/export')]) . '</p>';
+    case 'admin/content/iadaatpa':
+      return '<p>' . t('This page allows a translator to select what pages to translate.',
+          ['@export' => url('admin/config/regional/translate/export')]) . '</p>';
+      break;
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function iadaatpa_menu() {
+  $items = [];
+
+  $items['admin/config/regional/iadaatpa'] = [
+    'title' => 'iADAATPA',
+    'description' => 'Configuration for the iADAATPA module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['iadaatpa_admin_form'],
+    'access arguments' => ['access administration pages'],
+    'file' => 'iadaatpa.admin.inc',
+    'weight' => -5,
+  ];
+  $items['admin/config/regional/iadaatpa/settings'] = [
+    'title' => 'settings',
+    'weight' => 0,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  ];
+
+  // TODO Update Module Translate
+  // $items['admin/config/regional/iadaatpa/module'] = array(
+  //   'title' => 'Module Translate',
+  //   'weight' => 10,
+  //   'type' => MENU_LOCAL_TASK,
+  //   'page callback' => 'iadaatpa_module_translate_screen',
+  //   'access arguments' => array('access administration pages'),
+  //   'file' => 'iadaatpa.admin.inc',
+  // );
+
+  $items['admin/config/regional/iadaatpa/content'] = [
+    'title' => 'Content Translate',
+    'weight' => 20,
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'iadaatpa_content_translate_screen',
+    'access arguments' => ['access administration pages'],
+    'file' => 'iadaatpa.admin.inc',
+  ];
+
+  $items['iadaatpa/translate/progressbar/progress/%'] = [
+    'title' => 'Translate Progressbar Progress',
+    'page callback' => 'iadaatpa_translate_progressbar_progress',
+    'page arguments' => [4],
+    'type' => MENU_CALLBACK,
+    'access arguments' => ['access administration pages'],
+  ];
+
+  $items['export/%/%'] = [
+    'load arguments' => [],
+    'title' => 'Exports',
+    'page callback' => 'iadaatpa_direct_download_buffer',
+    'page arguments' => [1, 2],
+    'access arguments' => ['access administration pages'],
+    'access callback' => 'user_access',
+  ];
+
+  $items['admin/config/regional/iadaatpa/content/import'] = [
+    'load arguments' => [],
+    'title' => 'Import Content',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['iadaatpa_import_content_form'],
+    'access arguments' => ['access administration pages'],
+    'access callback' => 'user_access',
+  ];
+
+  $items['iadaatpa/translate/content/%/%/%'] = [
+    'page callback' => 'iadaatpa_translate_content',
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+    'access arguments' => TRUE,
+    'page arguments' => [3, 4, 5],
+  ];
+
+  return $items;
+}
+
+/**
+ * Translate Content.
+ *
+ * @param $nId
+ * @param $langcode
+ * @param $uniqueId
+ */
+function iadaatpa_translate_content($nId, $langcode, $uniqueId) {
+  module_load_include('inc', 'iadaatpa', 'string.functions');
+  $initialising = FALSE;
+  $variable_name = 'iadaatpa_progressbar_' . $uniqueId;
+  $commands = [];
+  $percentage = 10;
+  variable_set($variable_name, $percentage);
+
+  // Get Node
+  $node = node_load($nId);
+
+  // Get node wrapper
+  $entity_type = 'node';
+  $wrapper = entity_metadata_wrapper($entity_type, $node);
+
+  // Get all the field instances
+  $instances = field_info_instances($entity_type, $node->type);
+
+  // Calculate display percentage for translating instances
+  $percentPerInstance = (int) (80 / count($instances));
+
+  // Iterate through instances and process the translatable
+  foreach ($instances as $instance) {
+    $field_name = $instance['field_name'];
+    $field = field_info_field($field_name);
+
+    if ($field['translatable']) {
+      // Get the items from the entity
+      $item = $wrapper->language($node->language)->{$field_name}->value();
+      // Sometimes items aren't an array but instead just a single value.
+      $itemIsArray = is_array($item);
+
+      $column = 'value';
+      $content = $itemIsArray ? $item[$column] : $item;
+
+      // If the value is not a string then continue to the next instance
+      if (is_null($content) || !is_string($content)) {
+        continue;
+      }
+
+      // Split segments.
+      $segments = segmentation($content);
+      // Translate segments
+      $translatedSegments = translateSegments($node->language, $langcode, $segments);
+
+      // If there was an error translating then stop checking the instances and display a warning
+      if (empty($translatedSegments)) {
+        $initialising = TRUE;
+        break;
+      }
+
+      // Join segments
+      $target = segmentJoining($translatedSegments);
+      // Save new translation
+      $itemIsArray ? $item[$column] = $target : $item = $target;
+      // As we copied the original language item we need to unset the safe value so it can be set again
+      if ($itemIsArray && isset($item["safe_$column"])) {
+        unset($item["safe_$column"]);
+        $item["safe_$column"] = _text_sanitize($instances[$field_name],
+          $langcode, $item, $column);
+      }
+
+      // Set the new item for the translated segment
+      $wrapper->language($langcode)->{$field_name}->set($item);
+
+      $entity_info = entity_get_info($entity_type);
+
+      module_load_include('inc', 'entity_translation', 'translation.handler');
+      $handler = new EntityTranslationDefaultHandler($entity_type, $entity_info,
+        $node);
+      $translation = [
+        'translate' => 0,
+        'status' => 1,
+        'source' => $node->language,
+        'language' => $langcode,
+      ];
+
+      $setTranslationResult = $handler->setTranslation($translation);
+      $saveTranslationsResult = $handler->saveTranslations();
+      $wrapperSaveResult = $wrapper->save();
+    }
+    $percentage = $percentage + $percentPerInstance;
+
+    variable_set($variable_name, $percentage);
+  }
+
+  if ($initialising) {
+    variable_del($variable_name);
+    $commands[] = ajax_command_replace('a[href$=\'' . $uniqueId . '\']', t('Please try again later'));
+  }
+  else {
+    variable_set($variable_name, 90);
+    sleep(1);
+    variable_del($variable_name);
+    $commands[] = ajax_command_replace('a[href$=\'' . $uniqueId . '\']', t('Translated'));
+  }
+
+  $page = ['#type' => 'ajax', '#commands' => $commands];
+  ajax_deliver($page);
+}
+
+/**
+ * Import content form
+ *
+ * @see iadaatpa_menu()
+ *
+ * @param $form
+ * @param $form_state
+ *
+ * @return mixed
+ */
+function iadaatpa_import_content_form($form, &$form_state) {
+  $form['iadaatpa_import'] = [
+    '#type' => 'file',
+    '#title' => t('File'),
+    '#description' => t('iADAATPA XLIFF file to import.') . '</br>' . t('Accepts the following file extensions: XML, XLF, XLIFF.'),
+    // '#required' => TRUE,
+  ];
+
+  $form['actions'] = ['#type' => 'actions'];
+  $form['actions']['submit'] = [
+    '#type' => 'submit',
+    '#value' => t('Import File'),
+  ];
+
+  return $form;
+}
+
+/**
+ * Submit conditions for import content form.
+ *
+ * @see iadaatpa_import_content_form()
+ *
+ * @param $form
+ * @param $form_state
+ */
+function iadaatpa_import_content_form_submit($form, &$form_state) {
+  $validators = ['file_validate_extensions' => ['xlf xliff xml']];
+
+  $file = file_save_upload('iadaatpa_import', $validators);
+  $data = file_get_contents($file->uri);
+
+  module_load_include('php', 'iadaatpa', 'DrupalIadaatpaXliffDocument');
+  $xliffDocument = new DrupalIadaatpaXliffDocument($data);
+  persistNodeTranslation($xliffDocument);
+
+  $form_state['redirect'] = 'admin/config/regional/iadaatpa/content';
+}
+
+/**
+ * Persist imported content.
+ *
+ * @param \DrupalIadaatpaXliffDocument $xliffDocument
+ */
+function persistNodeTranslation(DrupalIadaatpaXliffDocument $xliffDocument) {
+  module_load_include('inc', 'iadaatpa', 'string.functions');
+  $fieldsDetails = $xliffDocument->getFields();
+
+  foreach ($fieldsDetails as $fieldDetails) {
+    $nId = $fieldDetails['node_id'];
+    $langcode = $fieldDetails['langcode'];
+    $entity_type = $fieldDetails['entity_type'];
+    $field_name = $fieldDetails['field_name'];
+
+    // Get Node
+    $node = node_load($nId);
+    // Get node wrapper
+    $wrapper = entity_metadata_wrapper($entity_type, $node);
+
+    $instances = field_info_instances($entity_type, $node->type);
+
+    $field = field_info_field($field_name);
+
+    if ($field['translatable']) {
+      $item = $wrapper->language($node->language)->{$field_name}->value();
+      $isArray = is_array($item);
+
+      // Get the translatable columns of the item
+      // Sometimes items aren't an array but instead just a single value.
+      $column = 'value';
+      // Get translated segments
+      $translatedSegments = $fieldDetails['target'];
+      // Join segments
+      $target = segmentJoining($translatedSegments);
+
+      // Save new translation
+      $isArray ? $item[$column] = $target : $item = $target;
+      // Get the field instance so we know how to sanitize the string
+
+      // As we copied the original language item we need to unset the safe value so it can be set again
+      if ($isArray && isset($item["safe_$column"])) {
+        unset($item["safe_$column"]);
+        $item["safe_$column"] = _text_sanitize($instances[$field_name],
+          $langcode, $item, $column);
+      }
+      // Set the new item for the translated segment
+      $wrapper->language($langcode)->{$field_name}->set($item);
+
+      $commands[] = $wrapper->value();
+      $entity_info = entity_get_info($entity_type);
+
+      module_load_include('inc', 'entity_translation', 'translation.handler');
+      $handler = new EntityTranslationDefaultHandler($entity_type,
+        $entity_info, $node);
+      $translation = [
+        'translate' => 0,
+        'status' => 1,
+        'source' => $node->language,
+        'language' => $langcode,
+      ];
+
+      $handler->setTranslation($translation);
+      $handler->saveTranslations();
+      $wrapper->save();
+    }
+  }
+}
+
+/**
+ * Download Node content for PostEditing.
+ *
+ * @param $nId
+ * @param $langcode
+ *
+ * @return mixed
+ */
+function iadaatpa_direct_download_buffer($nId, $langcode) {
+  module_load_include('inc', 'iadaatpa', 'string.functions');
+  module_load_include('php', 'iadaatpa', 'DrupalIadaatpaXliffDocument');
+  // Get Node
+  $node = node_load($nId);
+  // Get node wrapper
+  $entity_type = 'node';
+  $wrapper = entity_metadata_wrapper($entity_type, $node);
+
+  $instances = field_info_instances($entity_type, $node->type);
+
+  $xliffDocument = new DrupalIadaatpaXliffDocument();
+
+  $xliffDocument->setSourceLanguage($node->language)
+    ->setTargetLanguage($langcode);
+
+  $transUnitId = 0;
+  foreach ($instances as $instance) {
+    $field_name = $instance['field_name'];
+    $field = field_info_field($field_name);
+
+    if ($field['translatable']) {
+      $itemSource = $wrapper->language($node->language)->{$field_name}->value();
+      $itemTarget = $wrapper->language($langcode)->{$field_name}->value();
+
+      // Get the translatable columns of the item
+      // Sometimes items aren't an array but instead just a single value.
+      $column = 'value';
+      $contentSource = is_array($itemSource) ? $itemSource[$column] : $itemSource;
+      $contentTarget = is_array($itemTarget) ? $itemTarget[$column] : $itemTarget;
+
+      // If the contents are not strings then continue to next instance
+      if (is_null($contentSource) || !is_string($contentSource) || is_null($contentTarget) || !is_string($contentTarget)) {
+        continue;
+      }
+      // Split segments.
+      $sourceSegments = segmentation($contentSource);
+      $targetSegments = segmentation($contentTarget);
+
+      foreach ($sourceSegments as $index => $sourceSegment) {
+        $attributes = [
+          [
+            'id',
+            $transUnitId,
+            NULL,
+          ],
+          [
+            $xliffDocument->getIadaatpaNamespace() . ':node-id',
+            $nId,
+            $xliffDocument->getIadaatpaNamespaceName(),
+          ],
+          [
+            $xliffDocument->getIadaatpaNamespace() . ':field-name',
+            $field_name,
+            $xliffDocument->getIadaatpaNamespaceName(),
+          ],
+          [
+            $xliffDocument->getIadaatpaNamespace() . ':segment-id',
+            $index,
+            $xliffDocument->getIadaatpaNamespaceName(),
+          ],
+        ];
+        $targetSegment = isset($targetSegments[$index]) ? $targetSegments[$index] : "";
+        $xliffDocument->addTransUnit($attributes, $sourceSegment, $targetSegment);
+
+        $transUnitId++;
+      }
+    }
+  }
+
+  $filename = generateFilename($node, $langcode);
+
+  $xliffDocument->setFilename($filename);
+  $xliffDocument->download();
+}
+
+/**
+ * Get the progress bar execution status, as JSON.
+ *
+ * @param string $uniqueId
+ *
+ * @see iadaatpa_translate_content_form()
+ */
+function iadaatpa_translate_progressbar_progress($uniqueId) {
+  $progress = [
+    'message' => t('Starting translation...'),
+    'percentage' => -1,
+  ];
+  $progress['variable'] = 'iadaatpa_progressbar_' . $uniqueId;
+  $progress['value'] = variable_get('iadaatpa_progressbar_' . $uniqueId, 0);
+
+  $completed_percentage = variable_get('iadaatpa_progressbar_' . $uniqueId, 0);
+
+  if ($completed_percentage) {
+    $progress['message'] = t('Translating...');
+    $progress['percentage'] = $completed_percentage;
+  }
+
+  drupal_json_output($progress);
+}

@@ -1,0 +1,16 @@
+<?php
+/**
+ * @file
+ * iADAATPA module
+ */
+
+/**
+ * Implements hook_install()
+ */
+function iadaatpa_install() {
+  $siteName = variable_get('site_name');
+  $siteName = strtolower($siteName);
+  $siteName = preg_replace('/[ ]/', '_', $siteName);
+
+  variable_set('site_name_programmatic', $siteName);
+}
