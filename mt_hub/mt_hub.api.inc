@@ -2,11 +2,11 @@
 
 /**
  * @file
- * iADAATPA API functions for iadaatpa.module.
+ * MT-Hub API functions for mt_hub.module.
  */
 
 /**
- * @defgroup iADAATPA API interface
+ * @defgroup MT-Hub API interface
  * @{
  * Administration interface for languages.
  *
@@ -17,7 +17,7 @@
 /**
  * Translate a segment.
  *
- * Translate a segment using the iADAATPA Consumer API
+ * Translate a segment using the MT-Hub Consumer API
  *
  * @param string $src
  * @param string $trg
@@ -25,10 +25,10 @@
  *
  * @return mixed
  */
-function iadaatpa_translate($src, $trg, $segments) {
+function mt_hub_translate($src, $trg, $segments) {
   $segments = array_map('linebreakPlaceholder', $segments);
   // array_map('json_encode', $segments);
-  $apiToken = variable_get('iadaatpa_token', 'xxxxxxxxxx');
+  $apiToken = variable_get('mt_hub_token', 'xxxxxxxxxx');
   $method = 'translate';
   $httpMethod = 'POST';
   $data = [
@@ -45,7 +45,7 @@ function iadaatpa_translate($src, $trg, $segments) {
     'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
   ];
 
-  $baseUrl = 'https://iadaatpa.eu/api/';
+  $baseUrl = 'https://app.mt-hub.eu/api/';
   // $url = 'http://localhost/iadaatpa/api/';
   $url = $baseUrl . $method;
   $response = drupal_http_request($url, $options);

@@ -2,11 +2,11 @@
 
 /**
  * @file
- * Administration functions for iadaatpa.module.
+ * Administration functions for mt_hub.module.
  */
 
 /**
- * @defgroup locale-iadaatpa-administration Language administration interface
+ * @defgroup locale-mt-hub-administration Language administration interface
  * @{
  * Administration interface for languages.
  *
@@ -15,18 +15,18 @@
  */
 
 /**
- * Page callback: iADAATPA settings
+ * Page callback: MT-Hub settings
  *
- * @see iadaatpa_menu()
+ * @see mt_hub_menu()
  */
-function iadaatpa_admin_form($form, &$form_state) {
-  $form['iadaatpa_token'] = [
+function mt_hub_admin_form($form, &$form_state) {
+  $form['mt_hub_token'] = [
     '#type' => 'textfield',
     '#title' => t('API Token'),
-    '#default_value' => variable_get('iadaatpa_token', 'xxxxxxxxxx'),
+    '#default_value' => variable_get('mt_hub_token', 'xxxxxxxxxx'),
     '#size' => 20,
     '#maxlength' => 20,
-    '#description' => t('Your iADAATPA Consumer API token.'),
+    '#description' => t('Your MT-Hub Consumer API token.'),
     '#required' => TRUE,
   ];
 
@@ -34,19 +34,19 @@ function iadaatpa_admin_form($form, &$form_state) {
 }
 
 /**
- * Page callback: iADAATPA Module Translate
+ * Page callback: MT-Hub Module Translate
  * TODO Module Translate
  *
- * @see iadaatpa_menu()
+ * @see mt_hub_menu()
  */
-function iadaatpa_module_translate_form($form, &$form_state) {
-  $form['iadaatpa_token'] = [
+function mt_hub_module_translate_form($form, &$form_state) {
+  $form['mt_hub_token'] = [
     '#type' => 'textfield',
     '#title' => t('Module Translate'),
-    '#default_value' => variable_get('iadaatpa_module', 'xxxxxxxxxx'),
+    '#default_value' => variable_get('mt_hub_module', 'xxxxxxxxxx'),
     '#size' => 10,
     '#maxlength' => 10,
-    '#description' => t('Your iADAATPA Consumer API token.'),
+    '#description' => t('Your MT-Hub Consumer API token.'),
     '#required' => TRUE,
   ];
 
@@ -56,9 +56,9 @@ function iadaatpa_module_translate_form($form, &$form_state) {
 /**
  * Module Translate screen.
  */
-function iadaatpa_module_translate_screen() {
+function mt_hub_module_translate_screen() {
 
-  $elements = drupal_get_form('iadaatpa_module_translate_form');
+  $elements = drupal_get_form('mt_hub_module_translate_form');
   $output = drupal_render($elements);
   return $output;
 }
@@ -67,7 +67,7 @@ function iadaatpa_module_translate_screen() {
  * Content Translate table
  *
  */
-function iadaatpa_content_translate_screen() {
+function mt_hub_content_translate_screen() {
   $siteName = variable_get('site_name');
   $siteName = strtolower($siteName);
   $siteName = preg_replace('/[ ]/', '_', $siteName);
@@ -133,7 +133,7 @@ function iadaatpa_content_translate_screen() {
         $row->language,
         $language->name,
         $langcode,
-        ['data' => drupal_get_form('iadaatpa_translate_content_form', $row->nid, $langcode, $uniqueId)],
+        ['data' => drupal_get_form('mt_hub_translate_content_form', $row->nid, $langcode, $uniqueId)],
         [
           'data' => [
             '#type' => 'link',
@@ -157,7 +157,7 @@ function iadaatpa_content_translate_screen() {
 }
 
 /**
- * iADAATPA Translate Content Form
+ * MT-Hub Translate Content Form
  *
  * @param $form
  * @param $form_state
@@ -167,7 +167,7 @@ function iadaatpa_content_translate_screen() {
  *
  * @return array
  */
-function iadaatpa_translate_content_form(
+function mt_hub_translate_content_form(
   $form,
   &$form_state,
   $nId,
@@ -189,13 +189,13 @@ function iadaatpa_translate_content_form(
         'type' => 'bar',
         'message' => t('Translate...'),
         // Have the progress bar access this URL path.
-        'url' => url('iadaatpa/translate/progressbar/progress/' . $uniqueId),
+        'url' => url('mt_hub/translate/progressbar/progress/' . $uniqueId),
         // The time interval for the progress bar to check for updates.
         'interval' => 1000,
       ],
     ],
     // the url of the ajax callback as defined in the hook_menu
-    '#href' => 'iadaatpa/translate/content/' . $nId . '/' . $langcode . '/' . $uniqueId,
+    '#href' => 'mt_hub/translate/content/' . $nId . '/' . $langcode . '/' . $uniqueId,
   ];
 
   return $form;

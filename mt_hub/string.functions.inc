@@ -68,7 +68,7 @@ function segmentJoining($segments) {
 /**
  * Translate Segments.
  *
- * Translates segments using iadaatpa_translate()
+ * Translates segments using mt_hub_translate()
  *
  * Handles nested arrays of segments also.
  *
@@ -87,11 +87,11 @@ function translateSegments($src, $trg, $segments) {
     }
   }
   else {
-    module_load_include('inc', 'iadaatpa', 'iadaatpa.api');
+    module_load_include('inc', 'mt_hub', 'mt_hub.api');
     $segmentsChunks = array_chunk($segments, 10);
     foreach ($segmentsChunks as $chunk) {
       drupal_set_time_limit(100);
-      $translatedChunk = iadaatpa_translate($src, $trg, $chunk);
+      $translatedChunk = mt_hub_translate($src, $trg, $chunk);
       // If there is an error in the translating, return the error
       if (empty($translatedChunk)) {
         $targets = $translatedChunk;

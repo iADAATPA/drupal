@@ -1,8 +1,8 @@
-name = iADAATPA
-description = A module that translates drupal websites.
+name = MT-Hub
+description = Translates drupal websites using the MT-Hub.eu platform.
 core = 7.x
-package = iADAATPA
-configure = admin/config/regional/iadaatpa
+package = MT-Hub
+configure = admin/config/regional/mt_hub
 dependencies[] = entity
 dependencies[] = entity_token
 dependencies[] = entity_translation
@@ -14,6 +14,7 @@ dependencies[] = i18n_menu
 dependencies[] = i18n_string
 dependencies[] = i18n_translation
 dependencies[] = locale
-dependencies[] = title
 dependencies[] = translation
 dependencies[] = variable
+
+version = "7.x-1.0-beta1"

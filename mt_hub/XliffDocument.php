@@ -38,7 +38,7 @@ class XliffDocument {
   /**
    * @var string
    */
-  private $filename = 'iadaatpa_export';
+  private $filename = 'mt_hub_export';
 
   public function __construct($data = NULL, $namespaces = NULL) {
     if (isset($data)) {

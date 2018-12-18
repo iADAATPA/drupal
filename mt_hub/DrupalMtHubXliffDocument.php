@@ -2,14 +2,14 @@
 
 require_once 'XliffDocument.php';
 
-class DrupalIadaatpaXliffDocument extends XliffDocument {
-  private $iadaatpaNamespace = 'dria';
-  private $iadaatpaNamespaceName = 'DrupalIadaatpa';
+class DrupalMtHubXliffDocument extends XliffDocument {
+  private $mtHubNamespace = 'dria';
+  private $mtHubNamespaceName = 'DrupalMtHub';
 
   public function __construct($data = null, $namespaces = null) {
     if (empty($namespaces)) {
       $namespaces = [
-        $this->getIadaatpaNamespace() => $this->getIadaatpaNamespaceName()
+        $this->getMtHubNamespace() => $this->getMtHubNamespaceName()
       ];
     }
     parent::__construct($data, $namespaces);
@@ -23,7 +23,7 @@ class DrupalIadaatpaXliffDocument extends XliffDocument {
   public function getNodeId()
   {
     $xliff = $this->getXliff();
-    $nId = $this->getAttribute($xliff->file->body->{"trans-unit"}, 'node-id', $this->getIadaatpaNamespace());
+    $nId = $this->getAttribute($xliff->file->body->{"trans-unit"}, 'node-id', $this->getMtHubNamespace());
 
     return intval($nId);
   }
@@ -42,12 +42,12 @@ class DrupalIadaatpaXliffDocument extends XliffDocument {
     $transUnits = $this->getTransUnits();
     foreach ($transUnits as $transUnit) {
       $fieldsDetails[] = [
-        'node_id' => $this->getAttribute($transUnit, 'node-id', $this->getIadaatpaNamespace()),
-        'field_name' => $this->getAttribute($transUnit, 'field-name', $this->getIadaatpaNamespace()),
+        'node_id' => $this->getAttribute($transUnit, 'node-id', $this->getMtHubNamespace()),
+        'field_name' => $this->getAttribute($transUnit, 'field-name', $this->getMtHubNamespace()),
         'langcode' => $this->getTargetLanguage(),
         'entity_type' => $entity_type,
         'target' => [$this->getTarget($transUnit)],
-        'segment_id' => $this->getAttribute($transUnit, 'segment-id', $this->getIadaatpaNamespace())
+        'segment_id' => $this->getAttribute($transUnit, 'segment-id', $this->getMtHubNamespace())
       ];
     }
 
@@ -75,31 +75,31 @@ class DrupalIadaatpaXliffDocument extends XliffDocument {
   /**
    * @return string
    */
-  public function getIadaatpaNamespace()
+  public function getMtHubNamespace()
   {
-    return $this->iadaatpaNamespace;
+    return $this->mtHubNamespace;
   }
 
   /**
-   * @param string $iadaatpaNamespace
+   * @param string $mtHubNamespace
    */
-  public function setIadaatpaNamespace($iadaatpaNamespace)
+  public function setMtHubNamespace($mtHubNamespace)
   {
-    $this->iadaatpaNamespace = $iadaatpaNamespace;
+    $this->mtHubNamespace = $mtHubNamespace;
   }
 
   /**
    * @return string
    */
-  public function getIadaatpaNamespaceName() {
-    return $this->iadaatpaNamespaceName;
+  public function getMtHubNamespaceName() {
+    return $this->mtHubNamespaceName;
   }
 
   /**
-   * @param string $iadaatpaNamespaceName
+   * @param string $mtHubNamespaceName
    */
-  public function setIadaatpaNamespaceName($iadaatpaNamespaceName)
+  public function setMtHubNamespaceName($mtHubNamespaceName)
   {
-    $this->iadaatpaNamespaceName = $iadaatpaNamespaceName;
+    $this->mtHubNamespaceName = $mtHubNamespaceName;
   }
 }

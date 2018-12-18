@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * iADAATPA module
+ * MT-Hub module
  */
 
 /**
  * Implements hook_install()
  */
-function iadaatpa_install() {
+function mt_hub_install() {
   $siteName = variable_get('site_name');
   $siteName = strtolower($siteName);
   $siteName = preg_replace('/[ ]/', '_', $siteName);
