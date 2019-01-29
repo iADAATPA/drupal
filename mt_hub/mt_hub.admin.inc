@@ -2,16 +2,9 @@
 
 /**
  * @file
- * Administration functions for mt_hub.module.
- */
-
-/**
- * @defgroup locale-mt-hub-administration Language administration interface
- * @{
- * Administration interface for languages.
+ * Administration functions for mt_hub module.
  *
- * These functions provide the user interface to show, add, edit and
- * delete languages as well as providing options for language negotiation.
+ * @author Colin Harper
  */
 
 /**
@@ -31,36 +24,6 @@ function mt_hub_admin_form($form, &$form_state) {
   ];
 
   return system_settings_form($form);
-}
-
-/**
- * Page callback: MT-Hub Module Translate
- * TODO Module Translate
- *
- * @see mt_hub_menu()
- */
-function mt_hub_module_translate_form($form, &$form_state) {
-  $form['mt_hub_token'] = [
-    '#type' => 'textfield',
-    '#title' => t('Module Translate'),
-    '#default_value' => variable_get('mt_hub_module', 'xxxxxxxxxx'),
-    '#size' => 10,
-    '#maxlength' => 10,
-    '#description' => t('Your MT-Hub Consumer API token.'),
-    '#required' => TRUE,
-  ];
-
-  return system_settings_form($form);
-}
-
-/**
- * Module Translate screen.
- */
-function mt_hub_module_translate_screen() {
-
-  $elements = drupal_get_form('mt_hub_module_translate_form');
-  $output = drupal_render($elements);
-  return $output;
 }
 
 /**
@@ -115,7 +78,7 @@ function mt_hub_content_translate_screen() {
 
   $select->fields('n')
     ->limit(ceil($minimum / $noLanguages))
-    ->orderByHeader($header);  # TODO this call seems to be losing to orderByHeader on page load
+    ->orderByHeader($header);
 
   $results = $select->execute();
 

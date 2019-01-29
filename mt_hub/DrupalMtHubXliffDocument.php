@@ -2,14 +2,28 @@
 
 require_once 'XliffDocument.php';
 
+/**
+ * Class DrupalMtHubXliffDocument
+ *
+ * @package Classes
+ * @author Colin Harper
+ */
 class DrupalMtHubXliffDocument extends XliffDocument {
-  private $mtHubNamespace = 'dria';
+
+  /**
+   * @var MT-Hub Namespace ID
+   */
+  private $mtHubNamespace = 'drmthub';
+
+  /**
+   * @var MT-Hub Namespace Name
+   */
   private $mtHubNamespaceName = 'DrupalMtHub';
 
-  public function __construct($data = null, $namespaces = null) {
+  public function __construct($data = NULL, $namespaces = NULL) {
     if (empty($namespaces)) {
       $namespaces = [
-        $this->getMtHubNamespace() => $this->getMtHubNamespaceName()
+        $this->getMtHubNamespace() => $this->getMtHubNamespaceName(),
       ];
     }
     parent::__construct($data, $namespaces);
@@ -20,8 +34,7 @@ class DrupalMtHubXliffDocument extends XliffDocument {
    *
    * @return int
    */
-  public function getNodeId()
-  {
+  public function getNodeId() {
     $xliff = $this->getXliff();
     $nId = $this->getAttribute($xliff->file->body->{"trans-unit"}, 'node-id', $this->getMtHubNamespace());
 
@@ -33,10 +46,9 @@ class DrupalMtHubXliffDocument extends XliffDocument {
    *
    * @return array
    */
-  public function getFields()
-  {
+  public function getFields() {
     $entity_type = 'node';
-    // Filed details is an array of all fields.
+    // Field details is an array of all fields.
     // Each field has an array of all its details which were in the document.
     $fieldsDetails = [];
     $transUnits = $this->getTransUnits();
@@ -47,7 +59,7 @@ class DrupalMtHubXliffDocument extends XliffDocument {
         'langcode' => $this->getTargetLanguage(),
         'entity_type' => $entity_type,
         'target' => [$this->getTarget($transUnit)],
-        'segment_id' => $this->getAttribute($transUnit, 'segment-id', $this->getMtHubNamespace())
+        'segment_id' => $this->getAttribute($transUnit, 'segment-id', $this->getMtHubNamespace()),
       ];
     }
 
@@ -61,7 +73,8 @@ class DrupalMtHubXliffDocument extends XliffDocument {
 
       if ($lastField['field_name'] == $fieldDetail['field_name']) {
         $lastField['target'] = array_merge($lastField['target'], $fieldDetail['target']);
-      } else {
+      }
+      else {
         $fields[] = $lastField;
         $lastField = $fieldDetail;
       }
@@ -75,16 +88,14 @@ class DrupalMtHubXliffDocument extends XliffDocument {
   /**
    * @return string
    */
-  public function getMtHubNamespace()
-  {
+  public function getMtHubNamespace() {
     return $this->mtHubNamespace;
   }
 
   /**
    * @param string $mtHubNamespace
    */
-  public function setMtHubNamespace($mtHubNamespace)
-  {
+  public function setMtHubNamespace($mtHubNamespace) {
     $this->mtHubNamespace = $mtHubNamespace;
   }
 
@@ -98,8 +109,7 @@ class DrupalMtHubXliffDocument extends XliffDocument {
   /**
    * @param string $mtHubNamespaceName
    */
-  public function setMtHubNamespaceName($mtHubNamespaceName)
-  {
+  public function setMtHubNamespaceName($mtHubNamespaceName) {
     $this->mtHubNamespaceName = $mtHubNamespaceName;
   }
 }

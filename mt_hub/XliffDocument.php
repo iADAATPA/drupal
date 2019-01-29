@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Class XliffDocument
+ *
+ * @package Classes
+ * @author Colin Harper
+ */
 class XliffDocument {
 
   // Set this to true to generate a log
@@ -195,14 +201,12 @@ class XliffDocument {
    * @return null|string
    */
   public function getAttribute($element, $attribute, $namespace = NULL) {
-    // var_dump($element);
     if (isset($namespace)) {
       $attributes = $element->attributes($namespace, TRUE);
     }
     else {
       $attributes = $element->attributes();
     }
-    // var_dump($attributes);
 
     if (isset($attributes[$attribute])) {
       return (string) $attributes[$attribute];

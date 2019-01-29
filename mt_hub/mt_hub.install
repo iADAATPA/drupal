@@ -1,7 +1,9 @@
 <?php
 /**
  * @file
- * MT-Hub module
+ * Install functions for mt_hub module.
+ *
+ * @author Colin Harper
  */
 
 /**

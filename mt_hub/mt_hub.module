@@ -1,7 +1,9 @@
 <?php
 /**
  * @file
- * A block module that displays recent blog and forum posts.
+ * MT-Hub Module for translating Drupal website content.
+ *
+ * @author Colin Harper
  */
 
 /**
@@ -57,16 +59,6 @@ function mt_hub_menu() {
     'weight' => 0,
     'type' => MENU_DEFAULT_LOCAL_TASK,
   ];
-
-  // TODO Update Module Translate
-  // $items['admin/config/regional/mt_hub/module'] = array(
-  //   'title' => 'Module Translate',
-  //   'weight' => 10,
-  //   'type' => MENU_LOCAL_TASK,
-  //   'page callback' => 'mt_hub_module_translate_screen',
-  //   'access arguments' => array('access administration pages'),
-  //   'file' => 'mt_hub.admin.inc',
-  // );
 
   $items['admin/config/regional/mt_hub/content'] = [
     'title' => 'Content Translate',
@@ -237,7 +229,6 @@ function mt_hub_import_content_form($form, &$form_state) {
     '#type' => 'file',
     '#title' => t('File'),
     '#description' => t('MT-Hub XLIFF file to import.') . '</br>' . t('Accepts the following file extensions: XML, XLF, XLIFF.'),
-    // '#required' => TRUE,
   ];
 
   $form['actions'] = ['#type' => 'actions'];

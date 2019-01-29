@@ -2,16 +2,9 @@
 
 /**
  * @file
- * MT-Hub API functions for mt_hub.module.
- */
-
-/**
- * @defgroup MT-Hub API interface
- * @{
- * Administration interface for languages.
+ * API functions for mt_hub module.
  *
- * These functions provide the user interface to show, add, edit and
- * delete languages as well as providing options for language negotiation.
+ * @author Colin Harper
  */
 
 /**
@@ -27,8 +20,8 @@
  */
 function mt_hub_translate($src, $trg, $segments) {
   $segments = array_map('linebreakPlaceholder', $segments);
-  // array_map('json_encode', $segments);
-  $apiToken = variable_get('mt_hub_token', 'xxxxxxxxxx');
+
+  $apiToken = variable_get('mt_hub_token', 'xxxxxxxxxx ');
   $method = 'translate';
   $httpMethod = 'POST';
   $data = [
@@ -37,6 +30,7 @@ function mt_hub_translate($src, $trg, $segments) {
     'target' => $trg,
     'segments' => $segments,
   ];
+
   $data = drupal_http_build_query($data);
   $options = [
     'method' => $httpMethod,
@@ -46,7 +40,7 @@ function mt_hub_translate($src, $trg, $segments) {
   ];
 
   $baseUrl = 'https://app.mt-hub.eu/api/';
-  // $url = 'http://localhost/iadaatpa/api/';
+
   $url = $baseUrl . $method;
   $response = drupal_http_request($url, $options);
 
