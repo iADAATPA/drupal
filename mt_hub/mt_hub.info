@@ -4,7 +4,6 @@ core = 7.x
 package = MT-Hub
 configure = admin/config/regional/mt_hub
 dependencies[] = entity
-dependencies[] = entity_token
 dependencies[] = entity_translation
 dependencies[] = entity_translation_i18n_menu
 dependencies[] = entity_translation_upgrade
