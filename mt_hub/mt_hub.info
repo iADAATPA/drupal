@@ -16,4 +16,4 @@ dependencies[] = locale
 dependencies[] = translation
 dependencies[] = variable
 
-version = "7.x-1.0-beta1"
+version = "7.x-1.0"
